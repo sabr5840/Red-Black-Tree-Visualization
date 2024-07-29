@@ -13,6 +13,11 @@ The main purpose of this project is to offer an interactive tool for understandi
 
 The visualization helps in understanding how these operations affect the tree structure and how the Red-Black Tree properties are maintained.
 
+## Live Demo
+
+You can view a live demo of the project [here](https://sabr5840.github.io/Red-Black-Tree-Visualization/).
+
+
 ## Project Structure
 
 The project consists of three main components:
@@ -59,7 +64,7 @@ The project consists of three main components:
 - The `renderTree()` function uses D3.js to draw the tree structure, including nodes and connections.
 - Updates dynamically based on user actions such as insertions and deletions.
 
-### Usage
+## Usage
 
 Insert Node:
 - Enter a value in the input field and click the "Insert Node" button to add a new node to the tree.
