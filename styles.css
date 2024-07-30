@@ -89,3 +89,14 @@ button:active {
     text-align: center; 
     margin-top: 20px; 
 }
+
+.blink {
+    animation: blink-animation 1s steps(5, start) infinite;
+}
+
+@keyframes blink-animation {
+    80% {
+        fill: yellow;
+    }
+}
+

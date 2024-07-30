@@ -242,12 +242,7 @@ class RedBlackTree {
     }
 
     search(value) {
-        const node = this.findNode(value);
-        if (node) {
-            renderTree(node);
-        } else {
-            alert("Node not found");
-        }
+        return this.findNode(value);
     }
 }
 
@@ -272,11 +267,25 @@ function deleteNode() {
 function searchNode() {
     const value = document.getElementById('nodeValue').value;
     if (value) {
-        tree.search(Number(value));
+        const node = tree.search(Number(value));
+        renderTree(node);
+        if (node !== null) {
+            blinkNode(node);
+        }
     }
 }
 
-function renderTree() {
+function blinkNode(node) {
+    const nodes = d3.selectAll('circle')
+        .filter(d => d.node === node)
+        .classed('blink', true);
+
+    setTimeout(() => {
+        nodes.classed('blink', false);
+    }, 5000); // 5 seconds
+}
+
+function renderTree(foundNode = null) {
     const svg = d3.select('#tree').select('svg');
     if (!svg.empty()) {
         svg.remove();
@@ -294,7 +303,7 @@ function renderTree() {
 
     function traverse(node, x, y, level) {
         if (node !== null) {
-            nodes.push({ node, x, y });
+            nodes.push({ node, x, y, found: node === foundNode });
             if (node.left !== null) {
                 links.push({ source: { x, y }, target: { x: x - 50 / level, y: y + 50 } });
                 traverse(node.left, x - 50 / level, y + 50, level + 1);
@@ -325,7 +334,8 @@ function renderTree() {
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
         .attr('r', 15)
-        .attr('fill', d => d.node.color);
+        .attr('fill', d => d.found ? 'null' : d.node.color)
+        .classed('blink', d => d.found);
 
     svgContainer.selectAll('text')
         .data(nodes)
