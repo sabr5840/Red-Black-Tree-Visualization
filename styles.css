@@ -9,6 +9,31 @@ h1 {
     margin-bottom: 20px; 
 }
 
+.node {
+    display: inline-block;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 50%;
+    text-align: center;
+    font-weight: bold;
+    transition: background-color 0.5s, color 0.5s;
+}
+
+.line {
+    position: absolute;
+    background-color: black;
+    height: 2px;
+    width: 2px;
+    transform-origin: top left;
+}
+
+.children {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+
 #container {
     display: flex;
     justify-content: center; 
@@ -105,6 +130,12 @@ button:active {
     100% {
         fill: initial;
     }
+}
+
+@keyframes blink {
+    0% { background-color: yellow; }
+    50% { background-color: green; }
+    100% { background-color: yellow; }
 }
 
 

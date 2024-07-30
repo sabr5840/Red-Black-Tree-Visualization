@@ -95,7 +95,7 @@ class RedBlackTree {
             this.root.color = 'black';
             return;
         }
-        
+
         let current = this.root;
         let parent = null;
 
@@ -103,8 +103,11 @@ class RedBlackTree {
             parent = current;
             if (value < current.value) {
                 current = current.left;
-            } else {
+            } else if (value > current.value) {
                 current = current.right;
+            } else {
+                alert('Duplicate value!');
+                return;
             }
         }
 
@@ -120,7 +123,10 @@ class RedBlackTree {
 
     delete(value) {
         const node = this.findNode(value);
-        if (node === null) return; // Node to delete not found
+        if (node === null) {
+            alert('Node not found!');
+            return;
+        }
 
         let y = node;
         let yOriginalColor = y.color;
@@ -244,10 +250,7 @@ class RedBlackTree {
     search(value) {
         return this.findNode(value);
     }
-    
 }
-
-
 
 const tree = new RedBlackTree();
 
@@ -278,8 +281,7 @@ function searchNode() {
         return;
     }
     const node = tree.search(Number(value));
-    renderTree(node);
-    if (node !== null) {
+    if (node) {
         blinkNode(node);
     } else {
         alert('Node not found.');
@@ -287,93 +289,76 @@ function searchNode() {
 }
 
 function blinkNode(node) {
-    const circles = d3.select('#tree').selectAll('circle')
-        .filter(d => d.node === node);
-
-    // Add the blink class to trigger animation
-    circles.classed('blink', true);
-
-    // Remove the blink class after 5 seconds
-    setTimeout(() => {
-        circles.classed('blink', false);
-        // Set fill color back to node's original color if needed
-        circles.attr('fill', d => d.node.color);
-    }, 5000); // 5 seconds
+    const element = document.getElementById(`node-${node.value}`);
+    if (element) {
+        element.style.animation = 'blink 1s ease-in-out';
+        setTimeout(() => {
+            element.style.animation = '';
+        }, 1000);
+    }
 }
 
-function renderTree(foundNode = null) {
-    const svg = d3.select('#tree').select('svg');
-    if (!svg.empty()) {
-        svg.remove();
+function renderTree() {
+    const container = document.getElementById('treeContainer');
+    container.innerHTML = '';
+    if (tree.root) {
+        renderNode(tree.root, container, null, true);
     }
+}
 
-    const width = document.getElementById('tree').clientWidth;
-    const height = document.getElementById('tree').clientHeight;
+function renderNode(node, container, parentNode, isLeft) {
+    const element = document.createElement('div');
+    element.className = 'node';
+    element.id = `node-${node.value}`;
+    element.innerText = node.value;
+    element.style.backgroundColor = node.color === 'red' ? 'red' : 'black';
+    element.style.color = node.color === 'red' ? 'black' : 'white';
+    container.appendChild(element);
 
-    const svgContainer = d3.select('#tree').append('svg')
-        .attr('width', width)
-        .attr('height', height);
+    if (parentNode) {
+        const line = document.createElement('div');
+        line
+        line.className = 'line';
+        line.style.position = 'absolute';
+        line.style.width = '2px';
+        line.style.backgroundColor = 'black';
 
-    const nodes = [];
-    const links = [];
+        const parentRect = parentNode.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
 
-    function traverse(node, x, y, level) {
-        if (node !== null) {
-            nodes.push({ node, x, y });
-            if (node.left !== null) {
-                links.push({ source: { x, y }, target: { x: x - 50 / level, y: y + 50 } });
-                traverse(node.left, x - 50 / level, y + 50, level + 1);
-            }
-            if (node.right !== null) {
-                links.push({ source: { x, y }, target: { x: x + 50 / level, y: y + 50 } });
-                traverse(node.right, x + 50 / level, y + 50, level + 1);
-            }
+        if (isLeft) {
+            line.style.left = `${(parentRect.left + parentRect.width / 2) - containerRect.left}px`;
+            line.style.top = `${(parentRect.bottom - containerRect.top)}px`;
+            line.style.height = `${(elementRect.top - parentRect.bottom)}px`;
+            line.style.transform = 'translateX(-50%)';
+        } else {
+            line.style.left = `${(parentRect.left + parentRect.width / 2) - containerRect.left}px`;
+            line.style.top = `${(parentRect.bottom - containerRect.top)}px`;
+            line.style.height = `${(elementRect.top - parentRect.bottom)}px`;
+            line.style.transform = 'translateX(50%)';
         }
+
+        container.appendChild(line);
     }
 
-    traverse(tree.root, width / 2, 30, 1);
+    const leftContainer = document.createElement('div');
+    leftContainer.className = 'left-container';
+    const rightContainer = document.createElement('div');
+    rightContainer.className = 'right-container';
+    container.appendChild(leftContainer);
+    container.appendChild(rightContainer);
 
-    svgContainer.selectAll('line')
-        .data(links)
-        .enter()
-        .append('line')
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y)
-        .attr('stroke', 'black');
-
-    svgContainer.selectAll('circle')
-        .data(nodes)
-        .enter()
-        .append('circle')
-        .attr('cx', d => d.x)
-        .attr('cy', d => d.y)
-        .attr('r', 15)
-        .attr('fill', d => d.node.color) // Use node's color
-        .attr('stroke', 'black')
-        .attr('stroke-width', 2);
-
-    svgContainer.selectAll('text')
-        .data(nodes)
-        .enter()
-        .append('text')
-        .attr('x', d => d.x)
-        .attr('y', d => d.y + 4)
-        .attr('text-anchor', 'middle')
-        .attr('fill', 'white')
-        .text(d => d.node.value);
-
-    // If there's a foundNode, highlight and blink it
-    if (foundNode) {
-        blinkNode(foundNode);
+    if (node.left) {
+        renderNode(node.left, leftContainer, element, true);
+    }
+    if (node.right) {
+        renderNode(node.right, rightContainer, element, false);
     }
 }
 
+document.getElementById('insertBtn').addEventListener('click', insertNode);
+document.getElementById('deleteBtn').addEventListener('click', deleteNode);
+document.getElementById('searchBtn').addEventListener('click', searchNode);
 
-
-document.getElementById('nodeValue').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        insertNode();
-    }
-});
+renderTree();
