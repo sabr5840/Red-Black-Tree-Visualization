@@ -244,44 +244,60 @@ class RedBlackTree {
     search(value) {
         return this.findNode(value);
     }
+    
 }
+
+
 
 const tree = new RedBlackTree();
 
 function insertNode() {
     const value = document.getElementById('nodeValue').value;
-    if (value) {
-        tree.insert(Number(value));
-        renderTree();
+    if (!value || isNaN(value)) {
+        alert('Please enter a valid number.');
+        return;
     }
+    tree.insert(Number(value));
+    renderTree();
 }
 
 function deleteNode() {
     const value = document.getElementById('nodeValue').value;
-    if (value) {
-        tree.delete(Number(value));
-        renderTree();
+    if (!value || isNaN(value)) {
+        alert('Please enter a valid number.');
+        return;
     }
+    tree.delete(Number(value));
+    renderTree();
 }
 
 function searchNode() {
     const value = document.getElementById('nodeValue').value;
-    if (value) {
-        const node = tree.search(Number(value));
-        renderTree(node);
-        if (node !== null) {
-            blinkNode(node);
-        }
+    if (!value || isNaN(value)) {
+        alert('Please enter a valid number.');
+        return;
+    }
+    const node = tree.search(Number(value));
+    renderTree(node);
+    if (node !== null) {
+        blinkNode(node);
+    } else {
+        alert('Node not found.');
     }
 }
 
 function blinkNode(node) {
-    const nodes = d3.selectAll('circle')
-        .filter(d => d.node === node)
-        .classed('blink', true);
+    const circles = d3.select('#tree').selectAll('circle')
+        .filter(d => d.node === node);
 
+    // Add the blink class to trigger animation
+    circles.classed('blink', true);
+
+    // Remove the blink class after 5 seconds
     setTimeout(() => {
-        nodes.classed('blink', false);
+        circles.classed('blink', false);
+        // Set fill color back to node's original color if needed
+        circles.attr('fill', d => d.node.color);
     }, 5000); // 5 seconds
 }
 
@@ -303,7 +319,7 @@ function renderTree(foundNode = null) {
 
     function traverse(node, x, y, level) {
         if (node !== null) {
-            nodes.push({ node, x, y, found: node === foundNode });
+            nodes.push({ node, x, y });
             if (node.left !== null) {
                 links.push({ source: { x, y }, target: { x: x - 50 / level, y: y + 50 } });
                 traverse(node.left, x - 50 / level, y + 50, level + 1);
@@ -334,8 +350,9 @@ function renderTree(foundNode = null) {
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
         .attr('r', 15)
-        .attr('fill', d => d.found ? 'null' : d.node.color)
-        .classed('blink', d => d.found);
+        .attr('fill', d => d.node.color) // Use node's color
+        .attr('stroke', 'black')
+        .attr('stroke-width', 2);
 
     svgContainer.selectAll('text')
         .data(nodes)
@@ -346,7 +363,14 @@ function renderTree(foundNode = null) {
         .attr('text-anchor', 'middle')
         .attr('fill', 'white')
         .text(d => d.node.value);
+
+    // If there's a foundNode, highlight and blink it
+    if (foundNode) {
+        blinkNode(foundNode);
+    }
 }
+
+
 
 document.getElementById('nodeValue').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {

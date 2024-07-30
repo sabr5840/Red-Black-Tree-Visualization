@@ -91,12 +91,20 @@ button:active {
 }
 
 .blink {
-    animation: blink-animation 1s steps(5, start) infinite;
+    animation: blink-animation 0.5s steps(2, start) 10; /* 10 blink */
+
 }
 
 @keyframes blink-animation {
-    80% {
+    50% {
+        fill: initial;
+    }
+    50% {
         fill: yellow;
     }
+    100% {
+        fill: initial;
+    }
 }
+
 
