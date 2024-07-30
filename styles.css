@@ -22,9 +22,7 @@ h1 {
 .line {
     position: absolute;
     background-color: black;
-    height: 2px;
     width: 2px;
-    transform-origin: top left;
 }
 
 .children {
@@ -41,12 +39,7 @@ h1 {
     gap: 20px; 
 }
 
-#tree {
-    border: 1px solid #d8d6d6;
-    width: 70%;
-    height: 530px;
-    position: relative;
-}
+
 
 #infoBox {
     border: 1px solid #d8d6d6;
@@ -106,7 +99,7 @@ button:hover {
 }
 
 button:active {
-    background-color: #004080;
+    background-color: #424242;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
@@ -138,4 +131,23 @@ button:active {
     100% { background-color: yellow; }
 }
 
+#tree {
+    border: 1px solid #d8d6d6;
+    width: 100%;
+    height: 530px;
+    position: relative;
+    overflow: hidden; /* Hide overflow to prevent lines from being cut off */
+}
+
+@media (max-width: 768px) {
+    #tree {
+        height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    #tree {
+        height: 300px;
+    }
+}
 

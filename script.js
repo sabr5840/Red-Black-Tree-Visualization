@@ -95,7 +95,7 @@ class RedBlackTree {
             this.root.color = 'black';
             return;
         }
-
+        
         let current = this.root;
         let parent = null;
 
@@ -103,11 +103,8 @@ class RedBlackTree {
             parent = current;
             if (value < current.value) {
                 current = current.left;
-            } else if (value > current.value) {
-                current = current.right;
             } else {
-                alert('Duplicate value!');
-                return;
+                current = current.right;
             }
         }
 
@@ -123,10 +120,7 @@ class RedBlackTree {
 
     delete(value) {
         const node = this.findNode(value);
-        if (node === null) {
-            alert('Node not found!');
-            return;
-        }
+        if (node === null) return; // Node to delete not found
 
         let y = node;
         let yOriginalColor = y.color;
@@ -202,7 +196,8 @@ class RedBlackTree {
                     this.rotateLeft(x.parent);
                     w = x.parent.right;
                 }
-                if ((w.left === null || w.left.color === 'black') && (w.right === null || w.right.color === 'black')) {
+                if ((w.left === null || w.left.color === 'black') &&
+                    (w.right === null || w.right.color === 'black')) {
                     w.color = 'red';
                     x = x.parent;
                 } else {
@@ -226,7 +221,8 @@ class RedBlackTree {
                     this.rotateRight(x.parent);
                     w = x.parent.left;
                 }
-                if ((w.right === null || w.right.color === 'black') && (w.left === null || w.left.color === 'black')) {
+                if ((w.right === null || w.right.color === 'black') &&
+                    (w.left === null || w.left.color === 'black')) {
                     w.color = 'red';
                     x = x.parent;
                 } else {
@@ -246,11 +242,15 @@ class RedBlackTree {
         }
         if (x !== null) x.color = 'black';
     }
+    
 
     search(value) {
         return this.findNode(value);
     }
+    
 }
+
+
 
 const tree = new RedBlackTree();
 
@@ -264,48 +264,6 @@ function insertNode() {
     renderTree();
 }
 
-function deleteNode() {
-    const value = document.getElementById('nodeValue').value;
-    if (!value || isNaN(value)) {
-        alert('Please enter a valid number.');
-        return;
-    }
-    tree.delete(Number(value));
-    renderTree();
-}
-
-function searchNode() {
-    const value = document.getElementById('nodeValue').value;
-    if (!value || isNaN(value)) {
-        alert('Please enter a valid number.');
-        return;
-    }
-    const node = tree.search(Number(value));
-    if (node) {
-        blinkNode(node);
-    } else {
-        alert('Node not found.');
-    }
-}
-
-function blinkNode(node) {
-    const element = document.getElementById(`node-${node.value}`);
-    if (element) {
-        element.style.animation = 'blink 1s ease-in-out';
-        setTimeout(() => {
-            element.style.animation = '';
-        }, 1000);
-    }
-}
-
-function renderTree() {
-    const container = document.getElementById('treeContainer');
-    container.innerHTML = '';
-    if (tree.root) {
-        renderNode(tree.root, container, null, true);
-    }
-}
-
 function renderNode(node, container, parentNode, isLeft) {
     const element = document.createElement('div');
     element.className = 'node';
@@ -317,28 +275,21 @@ function renderNode(node, container, parentNode, isLeft) {
 
     if (parentNode) {
         const line = document.createElement('div');
-        line
         line.className = 'line';
-        line.style.position = 'absolute';
-        line.style.width = '2px';
-        line.style.backgroundColor = 'black';
-
+        
         const parentRect = parentNode.getBoundingClientRect();
         const elementRect = element.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
 
-        if (isLeft) {
-            line.style.left = `${(parentRect.left + parentRect.width / 2) - containerRect.left}px`;
-            line.style.top = `${(parentRect.bottom - containerRect.top)}px`;
-            line.style.height = `${(elementRect.top - parentRect.bottom)}px`;
-            line.style.transform = 'translateX(-50%)';
-        } else {
-            line.style.left = `${(parentRect.left + parentRect.width / 2) - containerRect.left}px`;
-            line.style.top = `${(parentRect.bottom - containerRect.top)}px`;
-            line.style.height = `${(elementRect.top - parentRect.bottom)}px`;
-            line.style.transform = 'translateX(50%)';
-        }
+        const parentCenterX = parentRect.left + parentRect.width / 2 - containerRect.left;
+        const parentBottomY = parentRect.bottom - containerRect.top;
+        const elementCenterX = elementRect.left + elementRect.width / 2 - containerRect.left;
+        const elementTopY = elementRect.top - containerRect.top;
 
+        line.style.left = `${parentCenterX}px`;
+        line.style.top = `${parentBottomY}px`;
+        line.style.height = `${elementTopY - parentBottomY}px`;
+        line.style.transform = `translateX(${isLeft ? -50 : 50}%)`;
         container.appendChild(line);
     }
 
@@ -357,8 +308,144 @@ function renderNode(node, container, parentNode, isLeft) {
     }
 }
 
-document.getElementById('insertBtn').addEventListener('click', insertNode);
-document.getElementById('deleteBtn').addEventListener('click', deleteNode);
-document.getElementById('searchBtn').addEventListener('click', searchNode);
 
-renderTree();
+function deleteNode() {
+    const value = document.getElementById('nodeValue').value;
+    if (!value || isNaN(value)) {
+        alert('Please enter a valid number.');
+        return;
+    }
+    tree.delete(Number(value));
+    renderTree();
+}
+
+function searchNode() {
+    const value = document.getElementById('nodeValue').value;
+    if (!value || isNaN(value)) {
+        alert('Please enter a valid number.');
+        return;
+    }
+    const node = tree.search(Number(value));
+    renderTree(node);
+    if (node !== null) {
+        blinkNode(node);
+    } else {
+        alert('Node not found.');
+    }
+}
+
+function blinkNode(node) {
+    const circles = d3.select('#tree').selectAll('circle')
+        .filter(d => d.node === node);
+
+    // Add the blink class to trigger animation
+    circles.classed('blink', true);
+
+    // Remove the blink class after 5 seconds
+    setTimeout(() => {
+        circles.classed('blink', false);
+        // Set fill color back to node's original color if needed
+        circles.attr('fill', d => d.node.color);
+    }, 5000); // 5 seconds
+}
+
+function renderTree(foundNode = null) {
+    const svg = d3.select('#tree').select('svg');
+    if (!svg.empty()) {
+        svg.remove();
+    }
+
+    const width = document.getElementById('tree').clientWidth;
+    const height = document.getElementById('tree').clientHeight;
+
+    const svgContainer = d3.select('#tree').append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    const nodes = [];
+    const links = [];
+
+    function traverse(node, x, y, level) {
+        if (node !== null) {
+            nodes.push({ node, x, y });
+            if (node.left !== null) {
+                links.push({ source: { x, y }, target: { x: x - 50 / level, y: y + 50 } });
+                traverse(node.left, x - 50 / level, y + 50, level + 1);
+            }
+            if (node.right !== null) {
+                links.push({ source: { x, y }, target: { x: x + 50 / level, y: y + 50 } });
+                traverse(node.right, x + 50 / level, y + 50, level + 1);
+            }
+        }
+    }
+
+    traverse(tree.root, width / 2, 30, 1);
+
+    // Create links with transitions
+    const linkSelection = svgContainer.selectAll('line')
+        .data(links);
+
+    linkSelection.enter()
+        .append('line')
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.source.x)
+        .attr('y2', d => d.source.y)
+        .attr('stroke', 'black')
+        .transition()
+        .duration(500)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+
+    linkSelection.exit()
+        .transition()
+        .duration(500)
+        .attr('x2', d => d.source.x)
+        .attr('y2', d => d.source.y)
+        .remove();
+
+    // Create nodes with transitions
+    const nodeSelection = svgContainer.selectAll('circle')
+        .data(nodes);
+
+    nodeSelection.enter()
+        .append('circle')
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+        .attr('r', 15)
+        .attr('fill', d => d.node.color)
+        .attr('stroke', 'black')
+        .attr('stroke-width', 2)
+        .transition()
+        .duration(500)
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y);
+
+    nodeSelection.exit()
+        .transition()
+        .duration(500)
+        .attr('r', 0)
+        .remove();
+
+    svgContainer.selectAll('text')
+        .data(nodes)
+        .enter()
+        .append('text')
+        .attr('x', d => d.x)
+        .attr('y', d => d.y + 4)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'white')
+        .text(d => d.node.value);
+
+    // If there's a foundNode, highlight and blink it
+    if (foundNode) {
+        blinkNode(foundNode);
+    }
+}
+
+
+document.getElementById('nodeValue').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        insertNode();
+    }
+});
