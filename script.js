@@ -250,8 +250,6 @@ class RedBlackTree {
     
 }
 
-
-
 const tree = new RedBlackTree();
 
 function insertNode() {
@@ -302,12 +300,15 @@ function renderNode(node, container, parentNode, isLeft) {
 
     if (node.left) {
         renderNode(node.left, leftContainer, element, true);
+    } else {
+        renderNullNode(leftContainer, element, true);
     }
     if (node.right) {
         renderNode(node.right, rightContainer, element, false);
+    } else {
+        renderNullNode(rightContainer, element, false);
     }
 }
-
 
 function deleteNode() {
     const value = document.getElementById('nodeValue').value;
@@ -349,39 +350,84 @@ function blinkNode(node) {
     }, 5000); // 5 seconds
 }
 
-function renderTree(foundNode = null) {
-    const svg = d3.select('#tree').select('svg');
-    if (!svg.empty()) {
-        svg.remove();
+function renderNullNode(container, parentNode, isLeft) {
+    const nullNode = document.createElement('div');
+    nullNode.className = 'node null-node';
+    nullNode.innerText = 'NIL';
+    nullNode.style.backgroundColor = 'black';
+    nullNode.style.color = 'white';
+    nullNode.style.width = '30px';
+    nullNode.style.height = '30px';
+    container.appendChild(nullNode);
+
+    if (parentNode) {
+        const line = document.createElement('div');
+        line.className = 'line';
+        
+        const parentRect = parentNode.getBoundingClientRect();
+        const nullNodeRect = nullNode.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        const parentCenterX = parentRect.left + parentRect.width / 2 - containerRect.left;
+        const parentBottomY = parentRect.bottom - containerRect.top;
+        const nullNodeCenterX = nullNodeRect.left + nullNodeRect.width / 2 - containerRect.left;
+        const nullNodeTopY = nullNodeRect.top - containerRect.top;
+
+        line.style.left = `${parentCenterX}px`;
+        line.style.top = `${parentBottomY}px`;
+        line.style.height = `${nullNodeTopY - parentBottomY}px`;
+        line.style.transform = `translateX(${isLeft ? -50 : 50}%)`;
+        container.appendChild(line);
     }
+}
 
-    const width = document.getElementById('tree').clientWidth;
-    const height = document.getElementById('tree').clientHeight;
+function renderTree(foundNode = null) {
+    const treeContainer = document.getElementById('tree');
+    treeContainer.innerHTML = '';
 
-    const svgContainer = d3.select('#tree').append('svg')
-        .attr('width', width)
-        .attr('height', height);
+    const width = treeContainer.clientWidth;
+    const height = treeContainer.clientHeight;
 
     const nodes = [];
     const links = [];
 
-    function traverse(node, x, y, level) {
+    function traverse(node, x, y, level, xOffset) {
         if (node !== null) {
             nodes.push({ node, x, y });
             if (node.left !== null) {
-                links.push({ source: { x, y }, target: { x: x - 50 / level, y: y + 50 } });
-                traverse(node.left, x - 50 / level, y + 50, level + 1);
+                links.push({ source: { x, y }, target: { x: x - xOffset, y: y + 50 } });
+                traverse(node.left, x - xOffset, y + 50, level + 1, xOffset / 1.5);
+            } else {
+                // Handle null left node
+                nodes.push({ node: { value: 'NIL', color: 'black' }, x: x - xOffset, y: y + 50 });
+                links.push({ source: { x, y }, target: { x: x - xOffset, y: y + 50 } });
             }
             if (node.right !== null) {
-                links.push({ source: { x, y }, target: { x: x + 50 / level, y: y + 50 } });
-                traverse(node.right, x + 50 / level, y + 50, level + 1);
+                links.push({ source: { x, y }, target: { x: x + xOffset, y: y + 50 } });
+                traverse(node.right, x + xOffset, y + 50, level + 1, xOffset / 1.5);
+            } else {
+                // Handle null right node
+                nodes.push({ node: { value: 'NIL', color: 'black' }, x: x + xOffset, y: y + 50 });
+                links.push({ source: { x, y }, target: { x: x + xOffset, y: y + 50 } });
             }
         }
     }
 
-    traverse(tree.root, width / 2, 30, 1);
+    traverse(tree.root, width / 2, 30, 1, width / 4);
 
-    // Create links with transitions
+    const minX = Math.min(...nodes.map(d => d.x));
+    const maxX = Math.max(...nodes.map(d => d.x));
+    const minY = Math.min(...nodes.map(d => d.y));
+    const maxY = Math.max(...nodes.map(d => d.y));
+
+    const treeWidth = maxX - minX;
+    const treeHeight = maxY - minY;
+
+    const svgContainer = d3.select('#tree').append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('viewBox', `${minX - 50} ${minY - 50} ${treeWidth + 100} ${treeHeight + 100}`);
+
     const linkSelection = svgContainer.selectAll('line')
         .data(links);
 
@@ -404,9 +450,8 @@ function renderTree(foundNode = null) {
         .attr('y2', d => d.source.y)
         .remove();
 
-    // Create nodes with transitions
     const nodeSelection = svgContainer.selectAll('circle')
-        .data(nodes);
+        .data(nodes.filter(d => d.node.value !== 'NIL'));
 
     nodeSelection.enter()
         .append('circle')
@@ -437,12 +482,32 @@ function renderTree(foundNode = null) {
         .attr('fill', 'white')
         .text(d => d.node.value);
 
-    // If there's a foundNode, highlight and blink it
+    svgContainer.selectAll('.null-node')
+        .data(nodes.filter(d => d.node.value === 'NIL'))
+        .enter()
+        .append('rect')
+        .attr('x', d => d.x - 15)
+        .attr('y', d => d.y - 15)
+        .attr('width', 30)
+        .attr('height', 30)
+        .attr('fill', 'black')
+        .attr('stroke', 'black')
+        .attr('stroke-width', 2);
+
+    svgContainer.selectAll('.null-node-text')
+        .data(nodes.filter(d => d.node.value === 'NIL'))
+        .enter()
+        .append('text')
+        .attr('x', d => d.x)
+        .attr('y', d => d.y + 4)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'white')
+        .text('NIL');
+
     if (foundNode) {
         blinkNode(foundNode);
     }
 }
-
 
 document.getElementById('nodeValue').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
