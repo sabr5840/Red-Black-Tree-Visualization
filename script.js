@@ -35,6 +35,7 @@ class RedBlackTree {
     }
 
         //adjusts the tree structure to rotate the node to the right, which is  part of balancing the tree
+    rotateRight(node) {
         let leftChild = node.left;
         node.left = leftChild.right;
         if (leftChild.right !== null) {
