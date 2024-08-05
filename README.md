@@ -4,7 +4,7 @@
 
 Welcome to the Red-Black Tree Visualization project. This web application provides a visual representation of Red-Black Trees, a type of self-balancing binary search tree. Red-Black Trees are used in various computer algorithms and systems to ensure efficient data operations. This project leverages D3.js for dynamic visualization and JavaScript to manage the tree operations.
 
-## What is Red-Black Tree
+## Definition
 
 A Red-Black Tree is a self-balancing binary search tree where each node has a color, either red or black. Balance is maintained through rotations and color changes after each insertion and deletion, ensuring that the tree remains balanced with a maximum height of 2 log(n+1), where 
 n is the number of nodes. This ensures efficient search operations with a complexity of O(logn).
