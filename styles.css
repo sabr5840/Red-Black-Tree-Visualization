@@ -112,8 +112,7 @@ button:active {
     animation: blink-animation 0.5s steps(2, start) 10;
 }
 
-//Provides a blinking animation for elements using the @keyframes rule. 
-//The animation changes the fill color or background color to make nodes blink.
+
 @keyframes blink-animation {
     50% {
         fill: initial;
@@ -148,9 +147,7 @@ button:active {
     align-items: center;
 }
 
-//Tree Visualization
 
-//Adjust the height of the tree container for smaller screen sizes to ensure responsiveness.
 @media (max-width: 768px) {
     #tree {
         height: 400px;
